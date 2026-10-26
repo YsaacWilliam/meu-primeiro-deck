@@ -1,0 +1,187 @@
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    background: white;
+    color: #222;
+    font-family: Arial, Helvetica, sans-serif;
+    line-height: 1.6;
+}
+
+header {
+    min-height: 340px;
+    padding: 45px 20px;
+    text-align: center;
+    color: white;
+    background:
+        linear-gradient(#0008, #0009),
+        url("https://media.api.sf.gov/original_images/df491d200ad3cbcc507ae6193d408f0a31e20e32.jpeg")
+        center 45% / cover no-repeat;
+}
+
+header h1 {
+    margin: 25px 0 5px;
+    color: #ffdf35;
+    font-size: clamp(2.8rem, 7vw, 5rem);
+    font-weight: 900;
+    -webkit-text-stroke: 2px black;
+    text-shadow: 4px 4px 0 black;
+}
+
+header p {
+    font-size: 1.1rem;
+}
+
+nav {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+nav a {
+    padding: 8px 15px;
+    border: 1px solid white;
+    border-radius: 20px;
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+nav a:hover {
+    color: #222;
+    background: #ffdf35;
+}
+
+main {
+    width: min(1000px, 92%);
+    margin: 35px auto;
+}
+
+section {
+    margin-bottom: 55px;
+}
+
+h2 {
+    font-size: 2rem;
+    line-height: 1.2;
+}
+
+.regras {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 15px;
+}
+
+.regras article,
+.deck {
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 18px;
+    background: white;
+}
+
+.regras h3 {
+    margin-top: 0;
+    color: #173b67;
+}
+
+.aviso,
+.subtitulo {
+    color: #555;
+}
+
+.deck {
+    margin: 20px 0;
+    box-shadow: 0 3px 12px #0000000d;
+}
+
+.cabecalho-deck {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.cabecalho-deck img {
+    width: 115px;
+    max-height: 165px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.cabecalho-deck h3 {
+    margin: 0;
+    font-size: 1.6rem;
+    text-transform: capitalize;
+}
+
+.cabecalho-deck p {
+    margin-top: 4px;
+    color: #555;
+}
+
+details {
+    margin-top: 15px;
+    border-top: 1px solid #ddd;
+    padding-top: 12px;
+}
+
+summary {
+    cursor: pointer;
+    color: #173b67;
+    font-weight: bold;
+}
+
+pre {
+    overflow-x: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    padding: 15px;
+    border-radius: 8px;
+    background: #f3f5f8;
+    font: 14px/1.5 Consolas, monospace;
+    user-select: text;
+}
+
+footer {
+    padding: 28px 20px;
+    text-align: center;
+    color: white;
+    background: #172a43;
+}
+
+.disclaimer {
+    max-width: 750px;
+    margin: 8px auto 0;
+    color: #d6dce5;
+    font-size: .85rem;
+}
+
+@media (max-width: 650px) {
+    header {
+        padding: 30px 15px;
+    }
+
+    .regras {
+        grid-template-columns: 1fr;
+    }
+
+    .cabecalho-deck {
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .cabecalho-deck img {
+        width: 88px;
+    }
+
+    .cabecalho-deck h3 {
+        font-size: 1.3rem;
+    }
+}
