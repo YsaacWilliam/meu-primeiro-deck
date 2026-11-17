@@ -1,10 +1,16 @@
-
 name: Pipeline Meu Primeiro Deck
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
 
 jobs:
+  # confere se os arquivos existem
   verificar:
+    name: Verificar arquivos
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,4 +20,115 @@ jobs:
           test -f index.html
           test -f style.css
 
-          
+      - name: Verificar HTML
+        run: |
+          grep -q 'href="style.css"' index.html
+          grep -q '<title>' index.html
+          echo "Arquivos OK"
+
+  # procura senhas no codigo
+  secrets-scan:
+    name: Secrets Scan (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Rodar Gitleaks
+        run: |
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:latest \
+            detect --source /repo --redact --verbose --exit-code 1
+
+  # SAST - analisa o codigo
+  sast:
+    name: SAST (Semgrep)
+    runs-on: ubuntu-latest
+    needs: verificar
+    container:
+      image: semgrep/semgrep:latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rodar Semgrep
+        run: |
+          semgrep scan \
+            --config p/default \
+            --config p/javascript \
+            --sarif --output semgrep.sarif \
+            --metrics=off
+
+      # se achar problema, falha
+      - name: Validar SAST
+        run: |
+          semgrep scan --config p/default --config p/javascript \
+            --error --metrics=off --quiet
+          echo "SAST OK"
+
+      - name: Salvar relatorio
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-sast
+          path: semgrep.sarif
+
+  # DAST - testa o site rodando
+  dast:
+    name: DAST (OWASP ZAP)
+    runs-on: ubuntu-latest
+    needs: [verificar, sast]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Subir o site
+        run: |
+          python3 -m http.server 8080 &
+          for i in $(seq 1 15); do
+            curl -sf http://localhost:8080/index.html > /dev/null && break
+            sleep 1
+          done
+          curl -sf http://localhost:8080/index.html > /dev/null
+          echo "Site no ar"
+
+      - name: Rodar ZAP
+        run: |
+          mkdir -p zap-out && chmod 777 zap-out
+          docker run --rm --network host \
+            -v "$PWD/zap-out:/zap/wrk:rw" \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py \
+              -t http://localhost:8080 \
+              -r zap-report.html \
+              -J zap-report.json \
+              -I
+
+      # falha se tiver alerta alto
+      - name: Validar DAST
+        run: |
+          ALTOS=$(jq '[.site[].alerts[] | select(.riskcode=="3")] | length' zap-out/zap-report.json)
+          MEDIOS=$(jq '[.site[].alerts[] | select(.riskcode=="2")] | length' zap-out/zap-report.json)
+          echo "Altos: $ALTOS | Medios: $MEDIOS"
+          if [ "$MEDIOS" -gt 0 ]; then
+            echo "::warning::$MEDIOS alerta(s) medio(s) no ZAP"
+          fi
+          if [ "$ALTOS" -gt 0 ]; then
+            echo "::error::DAST reprovado: $ALTOS alerta(s) alto(s)"
+            exit 1
+          fi
+          echo "DAST OK"
+
+      - name: Salvar relatorio
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-dast
+          path: zap-out/
+
+  # deploy so se tudo passou
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: [verificar, secrets-scan, sast, dast]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - run: echo "Tudo passou, pronto pra deploy"
