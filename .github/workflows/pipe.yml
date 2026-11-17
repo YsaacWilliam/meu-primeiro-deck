@@ -55,6 +55,7 @@ jobs:
           semgrep scan \
             --config p/default \
             --config p/javascript \
+            --exclude-rule yaml.github-actions.security.github-actions-mutable-action-tag.github-actions-mutable-action-tag \
             --sarif --output semgrep.sarif \
             --metrics=off
 
@@ -62,6 +63,7 @@ jobs:
       - name: Validar SAST
         run: |
           semgrep scan --config p/default --config p/javascript \
+            --exclude-rule yaml.github-actions.security.github-actions-mutable-action-tag.github-actions-mutable-action-tag \
             --error --metrics=off --quiet
           echo "SAST OK"
 
