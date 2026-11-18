@@ -30,6 +30,7 @@ jobs:
   secrets-scan:
     name: Secrets Scan (Gitleaks)
     runs-on: ubuntu-latest
+    needs: verificar
     steps:
       - uses: actions/checkout@v4
         with:
@@ -44,7 +45,7 @@ jobs:
   sast:
     name: SAST (Semgrep)
     runs-on: ubuntu-latest
-    needs: verificar
+    needs: secrets-scan
     container:
       image: semgrep/semgrep:latest
     steps:
@@ -78,7 +79,7 @@ jobs:
   dast:
     name: DAST (OWASP ZAP)
     runs-on: ubuntu-latest
-    needs: [verificar, sast]
+    needs: sast
     steps:
       - uses: actions/checkout@v4
 
@@ -130,7 +131,7 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    needs: [verificar, secrets-scan, sast, dast]
+    needs: dast
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - run: echo "Tudo passou, pronto pra deploy"
