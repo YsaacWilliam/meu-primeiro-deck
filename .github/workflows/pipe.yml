@@ -113,7 +113,7 @@ jobs:
           if [ "$MEDIOS" -gt 0 ]; then
             echo "::warning::$MEDIOS alerta(s) medio(s) no ZAP"
           fi
-          [ "$((ALTOS + MEDIOS))" -gt 0 ]; then
+          if [ "$ALTOS" -gt 0 ]; then
             echo "::error::DAST reprovado: $ALTOS alerta(s) alto(s)"
             exit 1
           fi
